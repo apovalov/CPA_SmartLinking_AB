@@ -1,4 +1,4 @@
-# Smart-Link-II-A-B_Design
+# Smart-Link: AB Design
 
 A/B experimentation is a method of testing a new feature, a new design or interface variant, a new version of an algorithm, etc. The peculiarity of A/B-tests is that they allow isolating the effect from external factors due to simultaneous operation of two versions of a website or application. They allow you to determine which of the variants is better at achieving the set goals: increasing conversion, average check, duration of a user session, etc.
 
