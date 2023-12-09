@@ -51,19 +51,70 @@ The significance level α is the probability of rejecting the null hypothesis wh
 
 The t-test is not difficult to calculate. The formula for two independent samples looks like this:
 
-\documentclass{article}
-\usepackage{amsmath}
-
-\begin{document}
-
 The t-statistic is calculated as follows:
 
 $$t = \frac{\bar{x}_1 - \bar{x}_2}{\sqrt{\frac{s_1^2}{n_1} + \frac{s_2^2}{n_2}}}$$
 
 Where:
-\begin{itemize}
-  \item $\bar{x}_1 - \bar{x}_2$ is the difference in means of the two groups being compared.
-  \item The denominator is the root of the sum of squared standard errors of each group, divided by the size of each group.
-\end{itemize}
 
-\end{document}
+* $\bar{x}_1 - \bar{x}_2$ is the difference in means of the two groups being compared.
+* The denominator is the root of the sum of squared standard errors of each group, divided by the size of each group.
+
+
+# 3. Simulated A/A-test
+
+If the A/A test is performed correctly (the samples are independent, there are no obvious differences between them, and they are of sufficient size), the proportion of errors of the first kind will be approximately equal to the significance level α. Such A/A tests are useful at the design stage of an A/B experiment to assess that our test is designed correctly.
+
+# 4. Simulated A/B-test
+
+MDE (minimal detectable effect) - the minimum effect we can catch. The parameter is specified as a relative increase. If we want to catch a 10% change in reward_avg, the value of the parameter is specified as MDE = 0.1.
+
+### Error of the II kind
+When you implement the function, you will see that in some simulations the test captures statistically significant differences between groups and in some it does not. The situation when the test does not capture differences that are actually present is called a type II error (denoted by the letter β).
+
+the higher the size of MDE that we want to fix by our test, the less often we will "catch" a type II error. And vice versa, the smaller the MDE, the more often we will "catch" an error.
+
+On the other hand, the decrease in MDE size can be compensated by a larger sample size (test groups) n_samples. If we want to capture a smaller effect, we can try to achieve this by adding more data.
+
+
+### Test power (sensitivity)
+Test power (or sensitivity) is the probability with which we will detect the desired MDE. Power is calculated as 1 - β.
+
+The industry often fixes power at 80-99% and tries to design A/B tests and adjust other parameters of the experiment to "hold" this level.
+
+The greater the sensitivity of the test, the fewer errors will be made and smaller effects can be captured. Plus, less data will be required and the test can be run faster. In the industry, increasing test sensitivity is a big focus. Because:
+
+the more tests we can run in the same amount of time, the more hypotheses we can test and more changes we can implement, making more money;
+ the more small effects we can capture, the more money we can make for the company. An effect of 1% on a turnover of billions of rubles (or dollars) will bring in an additional 10 million.
+
+# 5. Sample size, MDE
+
+One of the most obvious and universal ways to determine sample size (or MDE) is to pick it up experimentally. We have written code for simulations and A/A and A/B tests. Let's just pass different values of n_samples or MDE to these functions and choose such values at which the share of errors of I and II kinds will be within the levels we need.
+
+This approach has a disadvantage - it is high computational complexity. I think you have noticed that each simulation is a loop, and parameter enumeration is also a loop. As a result, we have several nested loops. On large samples and a large grid of parameters to be enumerated, this can take significant time.
+
+If your data are normally distributed (remember that our cpc distribution is not normal), you can use the formulas to calculate sample size and MDE.
+
+One popular formula for calculating the size of test groups is as follows:
+
+$$ n > \left[ \frac{z_{\alpha/2} + z_{\beta}}{MDE} \right]^2 \frac{2\sigma^2}{MDE^2}$$
+
+
+n - sample size for each group (test and control)
+z - inverse normal distribution function
+α - significance level
+β - error of II kind
+σ^2 - variance in the control and test groups (assuming they are equal)
+MDE - minimum effect we want to detect
+
+In this formula we are not familiar with only one parameter z
+
+z is the inverse normal distribution function (or normal distribution inversion function). It is used to determine the quantile of the normal distribution. The inverse normal distribution function gives us the value of x for which the corresponding probability is equal to a given value.
+
+There is already an implementation of this function in the scipy library. norm.ppf. Pass (1 - α/2) and (1 - β) to it as a parameter.
+
+### MDE
+
+Now let's solve the inverse problem.  Suppose we know what size test groups we can afford in the experiment. But our product manager is interested in what MDE we can capture within the A/B-experiment with given levels of significance and power.
+
+$$ MDE \geq \frac{z_{\alpha/2} + z_{\beta}}{\sqrt{n}} \sqrt{2\sigma} $$
